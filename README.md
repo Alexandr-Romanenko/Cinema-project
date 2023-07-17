@@ -35,6 +35,10 @@ To run the application, follow these steps:
 **Technologies Used**
 
 Django
+
 Django REST framework
+
 SQLite
+
 HTML
+
