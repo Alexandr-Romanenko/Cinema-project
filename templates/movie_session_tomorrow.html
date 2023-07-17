@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+
+    {% block header %}
+    <h3>Site navigations</h3>
+    {% endblock %}
+
+
+
+{% block content %}
+    <div>
+    <h1> List of movies </h1>
+    {% if messages %}
+       {% for message in messages %}
+           <h2 style="color: red"> {{ message }} </h2>
+       {% endfor %}
+    {% endif %}
+    </div>
+
+    <div>
+    <form method="get">
+        <input type="hidden" name="session_date" value="session_tomorrow">
+    </form>
+
+    <form>
+        {{ sort }}
+        <input type="hidden" name="session_date" value="{{ request.GET.session_date }}">
+        <input type="submit" value="Sort">
+    </form>
+    </div>
+
+    <div>
+    {% if user.is_anonymous %}
+         {% for movie in moviesession_list %}
+         <h3>Movie: {{ movie.movie_title }} <br> Descriptions: {{ movie.movie_description }} <br>
+         Show date from: {{ movie.session_show_start_date |date:"d/M/Y"}} <br>
+         Movie start time: {{ movie.session_start_time |time:"H:i"}} <br> Ticket price: {{ movie.ticket_price }} UAH <br>
+         Free seats left: {{ movie.free_seats }}
+         </h3>
+         {% endfor %}
+    {% endif %}
+    </div>
+
+    <div>
+    {% if user.is_authenticated and user.is_superuser == False %}
+         {% for movie in moviesession_list %}
+         <h3> <a href="{% url 'movie_details' movie.id %}"> {{ movie.movie_title  }}</a><br>
+         Descriptions: {{ movie.movie_description }} <br>
+         Show date from: {{ movie.session_show_start_date |date:"d/M/Y"}} <br>
+         Movie start time: {{ movie.session_start_time |time:"H:i"}} <br> Ticket price: {{ movie.ticket_price }} UAH <br>
+         Free seats left: {{ movie.free_seats }}</h3>
+         {% endfor %}
+    {% endif %}
+   </div>
+
+   <div>
+    {% if user.is_superuser %}
+        {% for movie in moviesession_list %}
+         <h3>Movie: {{ movie.movie_title }}, Descriptions: {{ movie.movie_description }},
+         Show date from {{ movie.session_show_start_date }} to {{ movie.session_show_end_date }}
+         <form method='post' action="{% url 'change_movie_session' movie.id %}">
+         {% csrf_token %}
+             {{ purchase_form.as_p }}
+         <input type="button" value="Change it" onclick="window.location.href='{% url 'change_movie_session' movie.id %}'">
+         </form></h3>
+         {% endfor %}
+    {% endif %}
+    </div>
+
+
+    <div class="pagination">
+          <span class="step-links">
+          {% if page_obj.has_previous %}
+          <a href="?page=1">&laquo; first page</a>
+          <a href="?page={{ page_obj.previous_page_number }}">previous page</a>
+          {% endif %}
+          <span class="current">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+          </span>
+          {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}">next page</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}">last page&raquo;</a>
+          {% endif %}
+          </span>
+     </div>
+{% endblock %}
+

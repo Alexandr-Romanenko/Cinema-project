@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h2>Create new cinema hall</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+        <input type="submit" value="Create hall">
+            {{ form.errors }}
+    </form>
+
+{% endblock %}
+
+ {% block pagination %}
+ {% endblock %}

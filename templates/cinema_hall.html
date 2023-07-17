@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h2>List of exists cinema hall</h2>
+
+    <div>
+    {% if user.is_authenticated and user.is_superuser == False %}
+          {% for hall in cinemahall_list %}
+         <h3>Hall name: {{ hall.hall_name }},  Size: {{ hall.hall_size }} seats</h3>
+         {% endfor %}
+    {% endif %}
+    </div>>
+
+    <div>
+    {% if user.is_superuser %}
+         {% for hall in cinemahall_list %}
+         <h3>Hall name: {{ hall.hall_name }},  Size: {{ hall.hall_size }} seats
+         <form method='post' action="{% url 'change_hall' hall.id %}">
+         {% csrf_token %}
+         <input type="button" value="Change it" onclick="window.location.href='{% url 'change_hall' hall.id %}'">
+         </form>
+         </h3>
+         {% endfor %}
+    {% endif %}
+    </div>
+
+
+{% endblock %}
