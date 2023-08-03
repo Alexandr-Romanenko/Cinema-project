@@ -11,6 +11,7 @@ from django.contrib.auth.forms import UserCreationForm
 from datetime import date, datetime
 from django.db.models import Q
 from cinema_app.models import CustomUser, CinemaHall, MovieSession, Purchase
+from cinema_app.exceptions import ValidationError
 
 
 class UserCreateForm(UserCreationForm):
@@ -41,6 +42,12 @@ class UserCreateForm(UserCreationForm):
             'email': None,
          }
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if CustomUser.objects.filter(email__iexact=email).exists():
+            self.add_error('email', 'Email is already registered!')
+        return email
+
 
 class CinemaHallCreateForm(forms.ModelForm):
     """
@@ -54,6 +61,19 @@ class CinemaHallCreateForm(forms.ModelForm):
     class Meta:
         model = CinemaHall
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        """
+        Method overridden to add an object to the request when updating the object for subsequent validation
+        :param args:
+        :param kwargs:
+        :return: updated MovieSessionForm
+        """
+        if 'request' in kwargs:
+            self.request = kwargs.pop('request')
+        if 'pk' in kwargs:
+            self.hall_id = kwargs.pop('pk')
+        super(CinemaHallCreateForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         """
@@ -74,17 +94,29 @@ class CinemaHallCreateForm(forms.ModelForm):
         hall_name = cleaned_data.get('hall_name')
         hall_size = cleaned_data.get('hall_size')
 
-        hall = self.instance
-        if self.initial:
+        if self.instance:
+            hall = self.instance
             busy_hall = Purchase.objects.filter(movie__hall=hall)
             if busy_hall:
-                self.add_error('__all__', 'Tickets to this hall have already been purchased,\
-                                          no changes can be made!')
+                self.add_error('__all__', 'Prohibition of changing the hall Error!')
+                messages.error(self.request, 'Tickets to this hall have already been purchased, \
+                                                          no changes can be made!')
+
+        # hall = self.instance
+        # if self.initial:
+        #     busy_hall = Purchase.objects.filter(movie__hall=hall)
+        #     if busy_hall:
+        #         self.add_error('__all__', 'Prohibition of changing the hall Error!')
+        #         messages.error(self.request, 'Tickets to this hall have already been purchased, \
+        #                                                   no changes can be made!')
+
         if len(hall_name) <= 2:
-            self.add_error('hall_name', 'The name of hall must be more then 2 symbol!')
+            self.add_error('hall_name', 'The hall name Error!')
+            messages.error(self.request, 'The name of hall must be more then 2 symbol!')
 
         if hall_size <= 0:
-            self.add_error('hall_size', 'The hall size must be more then 0!')
+            self.add_error('hall_size', 'The hall size Error!')
+            messages.error(self.request, 'The hall size must be more then 0!')
 
 
 class MovieSessionForm(forms.ModelForm):
@@ -119,8 +151,8 @@ class MovieSessionForm(forms.ModelForm):
         :param kwargs:
         :return: updated MovieSessionForm
         """
-
-        self.request = kwargs.pop('request', None)
+        if 'request' in kwargs:
+            self.request = kwargs.pop('request', None)
         if 'pk' in kwargs:
             self.moviesession_id = kwargs.pop('pk')
         super(MovieSessionForm, self).__init__(*args, **kwargs)
@@ -149,7 +181,6 @@ class MovieSessionForm(forms.ModelForm):
         Returns:
             The cleaned form data.
         """
-
         cleaned_data = super().clean()
         hall = cleaned_data.get('hall')
         movie_title = cleaned_data.get('movie_title')
@@ -163,40 +194,40 @@ class MovieSessionForm(forms.ModelForm):
         movie_session = self.instance
         purchases = Purchase.objects.filter(movie=movie_session)
         if purchases:
-            self.add_error(None, 'Error')
+            self.add_error(None, 'Prohibition of changing the movie session Error')
             messages.error(self.request, 'Tickets for this movie session have already been purchased,\
                  no changes can be made!')
 
         if len(movie_title) <= 3:
-            self.add_error(None, 'Error')
+            self.add_error('movie_title', 'The movie title Error!')
             messages.error(self.request, 'The movie title cannot be less then 3 symbol!')
 
         if len(movie_description) <= 9:
-            self.add_error(None, 'Error')
+            self.add_error('movie_description', 'The movie description Error!')
             messages.error(self.request, 'The movie title cannot be less then 9 symbol!')
 
         if session_show_start_date > session_show_end_date:
-            self.add_error(None, 'Error')
+            self.add_error('session_show_end_date', 'The end date of movie show Error!')
             messages.error(self.request, 'The session end date cannot be earlier than the session start date!')
 
         if session_show_start_date == session_show_end_date and session_start_time >= session_end_time:
-            self.add_error(None, 'Error')
+            self.add_error(None, 'The  duration of movie show  Error!')
             messages.error(self.request, 'The movie must run for a certain amount of time!')
 
         if session_start_time >= session_end_time:
-            self.add_error(None, 'Error')
+            self.add_error('session_start_time', 'The  start time of movie show Error!')
             messages.error(self.request, "The session end time can't be earlier then session start time!")
 
         if session_show_start_date < date.today() or session_show_end_date < date.today():
-            self.add_error(None, 'Error')
-            messages.error(self.request, 'You create sessions with invalid data!')
+            self.add_error(None, 'The invalid date Error!')
+            messages.error(self.request, 'You create sessions with invalid date!')
 
         if session_show_start_date == date.today() and session_start_time < datetime.now().time():
-            self.add_error(None, 'Error')
+            self.add_error(None, 'The invalid time Error!')
             messages.error(self.request, 'You create sessions with invalid time!')
 
         if ticket_price <= 0:
-            self.add_error(None, 'Error')
+            self.add_error('ticket_price', 'The invalid price Error!')
             messages.error(self.request, 'The ticket price must be more then 0!')
 
         enter_session_show_start_date = Q(session_show_start_date__range=(session_show_start_date,
@@ -211,7 +242,7 @@ class MovieSessionForm(forms.ModelForm):
             enter_session_start_time | enter_session_end_time).all()
 
         if movie_session_obj:
-            self.add_error(None, 'Error')
+            self.add_error(None, 'The movie session overlap Error!')
             messages.error(self.request, 'Sessions in the same hall cannot overlap!')
 
 
@@ -259,21 +290,22 @@ class PurchaseCreateForm(forms.ModelForm):
         """
         cleaned_data = super().clean()
         if not cleaned_data.get('quantity'):
-            self.add_error(None, "Error")
+            self.add_error('quantity', "The quantity Error!")
             messages.error(self.request, 'You must order at least 1 ticket!')
+            raise forms.ValidationError('This field is required!')
         quantity = cleaned_data.get('quantity')
         try:
             movie = MovieSession.objects.get(pk=self.movie_id)
             self.movie = movie
             if quantity > movie.free_seats:
-                self.add_error(None, 'Error')
+                self.add_error(None, 'The excess of available quantity Error!')
                 messages.error(self.request, 'You have ordered tickets more than free seats!')
             if movie.session_start_time < datetime.now().time():
-                self.add_error(None, 'Error')
+                self.add_error(None, 'The expiration time of ticket purchase Error!')
                 messages.error(self.request, 'The movie session has already started!')
         except MovieSession.DoesNotExist:
-            self.add_error(None, 'Error')
-            messages.error(self.request, 'This movie does not exist!')
+            self.add_error(None, 'The object existing Error!')
+            messages.error(self.request, 'This movie session does not exist!')
 
 
 class UserChoiceFilterForm(forms.Form):

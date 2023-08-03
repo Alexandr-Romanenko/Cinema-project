@@ -105,6 +105,15 @@ class CinemaHallCreateView(SuperUserRequiredMixin, CreateView):
     success_url = '/cinema_hall/'
     template_name = 'create_cinema_hall.html'
 
+    def get_form_kwargs(self):
+        """
+        This method redefined to add request into kwargs for their subsequent transmission to
+        class CinemaHallCreateForm forms.py module. Request in forms.py module is necessary to work out messages
+        """
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'request': self.request})
+        return kwargs
+
 
 class CinemaHallListView(UserLoginRequiredMixin, ListView):
     """
@@ -127,6 +136,16 @@ class UpdateCinemaHallView(SuperUserRequiredMixin, UpdateView):
     template_name = 'change_hall.html'
     success_url = '/cinema_hall/'
     queryset = CinemaHall.objects.all()
+
+    def get_form_kwargs(self):
+        """
+        This method redefined to add request into kwargs for their subsequent transmission to
+        class CinemaHallCreateForm forms.py module.
+        Request in forms.py module is necessary to work out messages
+        """
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'request': self.request, 'pk': self.kwargs['pk']})
+        return kwargs
 
 
 class MovieSessionListView(ListView):
@@ -187,6 +206,15 @@ class MovieSessionCreateView(SuperUserRequiredMixin, CreateView):
     form_class = MovieSessionForm
     success_url = '/'
     template_name = 'create_movie_session.html'
+
+    def get_form_kwargs(self):
+        """
+        This method redefined to add request into kwargs for their subsequent transmission to
+        class MovieSessionForm forms.py module. Request in forms.py module is necessary to work out messages
+        """
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'request': self.request})
+        return kwargs
 
     def form_valid(self, form):
         """
