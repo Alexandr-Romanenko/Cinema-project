@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+ {% block content %}
+     <div>
+     <h1> Movie details </h1><br>
+
+
+     <h1>{{ moviesession.movie_title }} </h1><br>
+     <h3> Descriptions: {{ moviesession.movie_description }} <br>
+          Show date from: {{ moviesession.session_show_start_date |date:"d/M/Y"}}
+                    to {{ moviesession.session_show_start_date |date:"d/M/Y"}}<br>
+          Movie start time: {{ moviesession.session_start_time |time:"H:i"}}<br>
+          Movie end time: {{ moviesession.session_end_time |time:"H:i"}}<br>
+          Left free seats: {{ moviesession.free_seats }}<br>
+          Ticket price: {{ moviesession.ticket_price }}<br>
+          The movie screening takes place in the {{ moviesession.hall }} hall<br></h3>
+          <form method='post' action="{% url 'cart' moviesession.id %}">
+          {% csrf_token %}
+          {{ purchase_form.as_p }}
+          <input type="submit" value="Buy ticket">
+          </form>
+     </div>
+     <br><br>
+
+    {% endblock %}
+
+ {% block pagination %}
+ {% endblock %}
+

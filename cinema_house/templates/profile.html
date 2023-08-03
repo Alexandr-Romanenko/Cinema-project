@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+
+ {% block content %}
+     <div>
+     <h1> Detail info about your purchases </h1><br>
+         <h3>You spent money of all the time: {{ user.total_sum }} UAH</h3>
+            ___________________________________________________________________
+
+             {% for purchase in purchase_list %}
+                 <p>Date: {{ purchase.purchase_date|date:"d--M--Y" }}</p>
+                 <p>Movie: {{ purchase.movie }}</p>
+                 <p>Quantity of tickets: {{ purchase.quantity }}</p>
+                 <p>Purchase sum: {{ purchase.purchase_sum }} UAH</p><br><br>
+            {% endfor %}
+     </div>
+ {% endblock %}
+

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2> Change exists cinema hall </h2><br>
+         <form method='post' enctype="multipart/form-data">
+             {% csrf_token %}
+
+             {{ form.as_p }}
+
+         <input type="submit" value="Change hall">
+
+         </form>
+{% endblock %}
+
+ {% block pagination %}
+ {% endblock %}
+
