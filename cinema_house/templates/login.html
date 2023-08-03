@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+    {% block header %}
+    <h2>Page to Login</h2>
+    {% endblock %}
+
+
+{% block urls %}
+    <div>
+        <a href="{% url 'registration' %}">Registration of new user</a>
+    </div>
+{% endblock %}
+
+  {% block content %}
+      <div>
+          <form method="post" action="{% url 'login' %}">
+          {% csrf_token %}
+          {{ form }}
+          <button type="submit">Login</button>
+          </form>
+          <br><br>
+          <a href="{% url 'registration' %}">Registration of new user</a>
+      </div>
+  {% endblock %}
+
+ {% block pagination %}
+ {% endblock %}
+
+

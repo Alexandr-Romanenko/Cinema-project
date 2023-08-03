@@ -1,0 +1,132 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+            integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous">
+    </script>
+
+    <meta charset="UTF-8">
+
+    <title>
+        {% block title %}
+            Главная
+        {% endblock %}
+    </title>
+
+    <link rel="stylesheet" href="{% static "base.css" %}">
+
+</head>
+{% block header %}
+    <nav class="navbar navbar-expand-sm navbar-light bg-light">
+        <a class="navbar-brand" href="/">YD Films</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+                aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url "main_page" %}">Главная</a>
+                </li>
+            </ul>
+            {% if not user.is_authenticated %}
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a href="/login/vk-oauth2">Войти через ВК</a>
+                    </li>
+                </ul>
+            {% endif %}
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <form action="{% url 'search_page' %}" method="get">
+                        <input name="name_film" type="text" placeholder="Search...">
+                    </form>
+                </li>
+            </ul>
+            <ul class="navbar-nav align-content-end">
+                {% if not request.user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url "registration" %}">Регистрация</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url "login" %}">Войти</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url "logout" %}">Выйти</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+{% endblock header %}
+
+{% block content %}
+<body>
+<div class="main">
+    {% for film in films %}
+        <div class="films">
+            <a href="{% url "film" film.slug %}"><b>{{ film.title }}</b></a>
+            <br>
+            <br>
+
+            <img src="{{ MEDIA_URL }}{{ film.poster.url }}" height="200"/><br>
+
+            <b>Описание: </b>{{ film.description }}<br>
+
+            <b>Год: </b>{{ film.year }}<br>
+
+            <b>Страны: </b>
+            {% for country in film.country.all %}
+                {{ country }}
+            {% endfor %}<br>
+
+            <b>Жанры: </b>
+            {% for genre in film.genre.all %}
+                {{ genre }}
+            {% endfor %}<br>
+
+            <b>Продолжительность: </b>{{ film.duration }}<br>
+            <b>Мировая премьера: </b>{{ film.premiere }}<br>
+
+            <b>Продюсеры: </b>
+            {% for producer in film.producer.all %}
+                {{ producer }}
+            {% endfor %}<br>
+        </div>
+    {% endfor %}
+    <hr>
+    {% endblock %}
+
+    <div class="genres">
+        <p>Жанры:</p>
+        {% for genre in all_genre %}
+            <a href="{{ genre.get_absolute_url }}">{{ genre }}</a><br>
+        {% endfor %}
+    </div>
+    <hr>
+
+    <div class="countries">
+        <p>Страны:</p>
+        {% for country in all_country %}
+            <a href="{{ country.get_absolute_url }}">{{ country }}</a><br>
+        {% endfor %}
+    </div>
+    <hr>
+
+    <div class="years">
+        <p>Года</p>
+        {% for year in all_year %}
+            <a class="disabled" href="{{ year.get_absolute_url }}">{{ year }}</a><br>
+        {% endfor %}
+    </div>
+    <hr>
+</div>
+</body>
+</html>
